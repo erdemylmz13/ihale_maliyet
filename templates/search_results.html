@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arama Sonuçları</title>
+    <style>
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            width: auto;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            text-align: center; /* Başlıkları ortaladık */
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Arama Sonuçları: "{{ query }}"</h1>
+        <div id="searchResults">
+            {{ results|safe }}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dosyanızı Yükleyin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url("/static/image.png");
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative; /* Modül için pozisyon ayarı */
+        }
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            width: 50%;
+            font-weight: bold;
+            display: block;
+            margin: 20px auto 0;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 250px;
+        }
+        .navbar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .navbar .navbar-brand {
+            font-size: 2em;
+            font-weight: bold;
+            color: black;
+        }
+        .card {
+            background-color: #e9ecef;
+        }
+        .form-group label {
+            display: none;
+        }
+        .dropzone {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .dropzone img {
+            max-width: 100px;
+            margin-bottom: 10px;
+        }
+        .dropzone h5,
+        .dropzone p {
+            color: black;
+        }
+        .or-text {
+            margin: 10px 0;
+            font-weight: normal;
+            color: black;
+        }
+        .filename {
+            margin-top: 10px;
+            color: green;
+            font-weight: bold;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .loading-text {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+            font-weight: bold;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            margin-top: 20px;
+        }
+        .progress-percentage {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #007bff;
+            font-weight: bold;
+        }
+        /* Yeni eklenen stil */
+        .module {
+            position: absolute;
+            top: 112px; /* Modülü biraz aşağı kaydır */
+            left: 220px; /* Modülü biraz sağa kaydır */
+            width: 402px; /* Modül genişletildi, 1.15 katı kadar */
+            background: rgba(255, 255, 255, 0.9); /* Arka planı mevcut arka plan gibi yaptık */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .module h2 {
+            text-align: center;
+            color: #343a40;
+            margin-bottom: 10px;
+            font-size: 1.5em; /* Yazı boyutunu ayarladık */
+        }
+        .module label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 1em; /* Yazı boyutunu ayarladık */
+            font-family: Arial, sans-serif; /* Yazı tipi aynı yapıldı */
+        }
+        .module input[type="text"],
+        .module select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em; /* Yazı boyutunu ayarladık */
+            font-family: Arial, sans-serif; /* Yazı tipi aynı yapıldı */
+        }
+        .module .readonly {
+            background-color: #e9ecef;
+            pointer-events: none;
+        }
+        .module button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="module">
+        <h2>Nakliye Hesaplama</h2>
+        <label for="katSayi">K (Kamyon Katsayısı)</label>
+        <input type="text" id="katSayi" name="katSayi" value="1400">
+        <label for="pozu">Malzeme Cinsi</label>
+        <select id="pozu" name="pozu" onchange="updateFields()">
+            <option value="">Seçiniz</option>
+            <option value="Manuel Giriş">Manuel Giriş</option>
+            <option value="Çimento Nakli">Çimento Nakli</option>
+            <option value="Kireç nakli">Kireç nakli</option>
+            <option value="Kum-Çakıl nakli">Kum-Çakıl nakli</option>
+            <option value="İnce sıva (mil) kumu">İnce sıva (mil) kumu</option>
+            <option value="Hasır çelik nakli">Hasır çelik nakli</option>
+            <option value="Taş nakli">Taş nakli</option>
+            <option value="Demir nakli">Demir nakli</option>
+            <option value="Sac nakli">Sac nakli</option>
+            <option value="Kiremit nakli">Kiremit nakli</option>
+            <option value="Harman tuğlası nakli">Harman tuğlası nakli</option>
+            <option value="Tuğla nakli (Karışık)">Tuğla nakli (Karışık)</option>
+            <option value="Tuğla nakli (19x19x8.5)">Tuğla nakli (19x19x8.5)</option>
+            <option value="Tuğla nakli (19x19x13.5)">Tuğla nakli (19x19x13.5)</option>
+            <option value="Tuğla nakli (19x9x8.5)">Tuğla nakli (19x9x8.5)</option>
+            <option value="Beton parke, bordür, çim taşı, oluk taşı nakli">Beton parke, bordür, çim taşı, oluk taşı nakli</option>
+            <option value="Doğal Parke Taşı Nakli">Doğal Parke Taşı Nakli</option>
+            <option value="Hafif Tuğla nakli (19x39x13.5)">Hafif Tuğla nakli (19x39x13.5)</option>
+            <option value="Hafif Tuğla nakli (24x11.5x23.5)">Hafif Tuğla nakli (24x11.5x23.5)</option>
+            <option value="Hafif Tuğla nakli (24x14.5x23.5)">Hafif Tuğla nakli (24x14.5x23.5)</option>
+            <option value="Hafif Tuğla nakli (24x17.5x23.5)">Hafif Tuğla nakli (24x17.5x23.5)</option>
+            <option value="Hafif Tuğla nakli (29x19x23.5)">Hafif Tuğla nakli (29x19x23.5)</option>
+            <option value="Hafif Tuğla nakli (24x24x23.5)">Hafif Tuğla nakli (24x24x23.5)</option>
+            <option value="Hafif Tuğla nakli (24x30x23.5)">Hafif Tuğla nakli (24x30x23.5)</option>
+            <option value="Gazbeton nakli (Ytong v.b.)">Gazbeton nakli (Ytong v.b.)</option>
+            <option value="Mermer princi nakli">Mermer princi nakli</option>
+            <option value="Profil nakli">Profil nakli</option>
+            <option value="Stabilize ve Kırmataş nakli">Stabilize ve Kırmataş nakli</option>
+            <option value="Hafif agrega nakli">Hafif agrega nakli</option>
+            <option value="Yumuşak ve sert toprak nakli">Yumuşak ve sert toprak nakli</option>
+            <option value="Yumuşak ve sert küskülük nakli">Yumuşak ve sert küskülük nakli</option>
+            <option value="Hazır beton harcı nakli">Hazır beton harcı nakli</option>
+            <option value="Şantiye sınırları dışına kamyonla kazı malzemesi nakli">Şantiye sınırları dışına kamyonla kazı malzemesi nakli</option>
+        </select>
+        <label for="yogunluk">Y (Yoğunluk)</label>
+        <input type="text" id="yogunluk" name="yogunluk" class="readonly">
+        <label for="mesafe">Taşıma Mesafesi (Km)</label>
+        <input type="text" id="mesafe" name="mesafe">
+        <label for="tasimaKatsayisi">A (Taşıma Gücü Katsayısı)</label>
+        <input type="text" id="tasimaKatsayisi" name="tasimaKatsayisi" value="1">
+        <label for="birim">Birimi</label>
+        <input type="text" id="birim" name="birim" class="readonly">
+        <div style="text-align:center; margin-top: 10px;">
+            <button type="button" onclick="calculate()">Hesapla</button>
+        </div>
+        <div style="text-align:center; margin-top: 10px;">
+            <strong>Nakliye Birim Fiyatı</strong>
+            <div id="birimFiyat">0,00</div>
+        </div>
+    </div>
+    <div class="container">
+        <nav class="navbar navbar-light">
+            <span class="navbar-brand mb-0 h1 w-100">Yaklaşık Maliyet Bul</span>
+        </nav>
+        <img src="/static/erdem.png" alt="Güven Altyapı İnşaat Logo" class="logo">
+        <form method="post" enctype="multipart/form-data" onsubmit="return showLoading()">
+            <div class="dropzone" id="dropzone">
+                <img src="/static/Dosya.png" alt="Dosya Simgesi">
+                <div id="filename" class="filename"></div>
+                <label for="file" class="btn btn-primary mt-3">Dosya Seç</label>
+                <div class="or-text">veya</div>
+                <div class="form-group">
+                    <input type="file" name="file" class="form-control-file" id="file" style="display: none;" onchange="updateFileName()">
+                </div>
+                <h5>İhale dokümanınızın içinde bulunan Birim Fiyat Teklif Cetvelini buraya sürükleyip bırakın</h5>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Yükle</button>
+        </form>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Poz Ara</h5>
+                <form method="post" action="/search">
+                    <div class="form-group">
+                        <input type="text" name="query" class="form-control" placeholder="Tanım veya Poz No girin">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ara</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <div class="loading-text">Hesaplama Yapılıyor...</div>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
+            </div>
+            <div class="progress-percentage" id="progress-percentage">0%</            </div>
+        </div>
+    </div>
+    <script>
+        const data = {
+            "Çimento Nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Kireç nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Kum-Çakıl nakli": { birim: "m³", yogunluk: 1.6 },
+            "İnce sıva (mil) kumu": { birim: "m³", yogunluk: 1.6 },
+            "Hasır çelik nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Taş nakli": { birim: "m³", yogunluk: 1.8 },
+            "Demir nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Sac nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Kiremit nakli": { birim: "Bina", yogunluk: 2.85 },
+            "Harman tuğlası nakli": { birim: "Bina", yogunluk: 2.0 },
+            "Tuğla nakli (Karışık)": { birim: "Bina", yogunluk: 2.0 },
+            "Tuğla nakli (19x19x8.5)": { birim: "Bina", yogunluk: 2.15 },
+            "Tuğla nakli (19x19x13.5)": { birim: "Bina", yogunluk: 2.85 },
+            "Tuğla nakli (19x9x8.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Beton parke, bordür, çim taşı, oluk taşı nakli": { birim: "m³", yogunluk: 2.0 },
+            "Doğal Parke Taşı Nakli": { birim: "m³", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (19x39x13.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (24x11.5x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (24x14.5x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (24x17.5x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (29x19x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (24x24x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Hafif Tuğla nakli (24x30x23.5)": { birim: "Bina", yogunluk: 2.0 },
+            "Gazbeton nakli (Ytong v.b.)": { birim: "m³", yogunluk: 0.6 },
+            "Mermer princi nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Profil nakli": { birim: "Ton", yogunluk: 1.0 },
+            "Stabilize ve Kırmataş nakli": { birim: "m³", yogunluk: 1.6 },
+            "Hafif agrega nakli": { birim: "m³", yogunluk: 0.9 },
+            "Yumuşak ve sert toprak nakli": { birim: "m³", yogunluk: 1.7 },
+            "Yumuşak ve sert küskülük nakli": { birim: "m³", yogunluk: 2.1 },
+            "Hazır beton harcı nakli": { birim: "m³", yogunluk: 2.1 },
+            "Şantiye sınırları dışına kamyonla kazı malzemesi nakli": { birim: "Ton", yogunluk: 1.0 }
+        };
+
+        function updateFields() {
+            const malzemeCinsi = document.getElementById('pozu').value;
+            const birimField = document.getElementById('birim');
+            const yogunlukField = document.getElementById('yogunluk');
+            const katSayiField = document.getElementById('katSayi');
+
+            if (malzemeCinsi === "Manuel Giriş") {
+                birimField.value = '';
+                yogunlukField.value = '';
+                katSayiField.removeAttribute('readonly');
+                birimField.classList.remove('readonly');
+                yogunlukField.classList.remove('readonly');
+                birimField.removeAttribute('readonly');
+                yogunlukField.removeAttribute('readonly');
+            } else if (data[malzemeCinsi]) {
+                birimField.value = data[malzemeCinsi].birim;
+                yogunlukField.value = data[malzemeCinsi].yogunluk;
+                katSayiField.setAttribute('readonly', 'true');
+                birimField.classList.add('readonly');
+                yogunlukField.classList.add('readonly');
+                birimField.setAttribute('readonly', 'true');
+                yogunlukField.setAttribute('readonly', 'true');
+            } else {
+                birimField.value = '';
+                yogunlukField.value = '';
+                katSayiField.setAttribute('readonly', 'true');
+                birimField.classList.add('readonly');
+                yogunlukField.classList.add('readonly');
+                birimField.setAttribute('readonly', 'true');
+                yogunlukField.setAttribute('readonly', 'true');
+            }
+        }
+
+        function calculate() {
+            const birimFiyatField = document.getElementById('birimFiyat');
+            const katSayi = parseFloat(document.getElementById('katSayi').value.replace(',', '.'));
+            const tasimaKatsayisi = parseFloat(document.getElementById('tasimaKatsayisi').value.replace(',', '.'));
+            const yogunluk = parseFloat(document.getElementById('yogunluk').value.replace(',', '.'));
+            let mesafe = parseFloat(document.getElementById('mesafe').value.replace(',', '.'));
+
+            if (!isNaN(katSayi) && !isNaN(tasimaKatsayisi) && !isNaN(yogunluk) && !isNaN(mesafe)) {
+                let nakliyeFiyati;
+                if (mesafe <= 10) {
+                    mesafe *= 1000; // Taşıma mesafesini metreye çevir
+                    nakliyeFiyati = 1.25 * 0.00017 * katSayi * Math.sqrt(mesafe) * yogunluk * tasimaKatsayisi;
+                } else {
+                    nakliyeFiyati = 1.25 * katSayi * (0.0007 * mesafe + 0.01) * yogunluk * tasimaKatsayisi;
+                }
+                birimFiyatField.innerText = nakliyeFiyati.toFixed(2).replace('.', ',');
+            } else {
+                alert('Lütfen geçerli değerler giriniz.');
+            }
+        }
+
+        function updateFileName() {
+            const fileInput = document.getElementById('file');
+            const fileName = document.getElementById('filename');
+            fileName.textContent = fileInput.files[0].name;
+        }
+
+        function showLoading() {
+            const fileName = document.getElementById('filename').textContent;
+            if (!fileName) {
+                alert("Lütfen bir dosya seçin.");
+                return false;
+            }
+            document.getElementById('loading-overlay').style.display = 'flex';
+            simulateProgress(); // İlerleme çubuğunu başlat
+            return true;
+        }
+
+        function simulateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercentage = document.getElementById('progress-percentage');
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 1; // İlerleme hızını ayarlayabilirsiniz
+                    progressBar.style.width = width + '%';
+                    progressPercentage.textContent = width + '%';
+                }
+            }, 100); // İlerleme aralığını ayarlayabilirsiniz
+        }
+
+        document.getElementById('dropzone').addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.getElementById('dropzone').addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            document.getElementById('file').files = files;
+            updateFileName();
+        });
+
+        // Sayfa geri tuşuyla gelindiğinde yenilenmesini sağlar
+        window.onpageshow = function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type == 2)) {
+                window.location.reload();
+            }
+        };
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+

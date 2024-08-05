@@ -1,0 +1,24 @@
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    global birim_fiyatlar, vectorizer, tanim_vectors
+    if birim_fiyatlar is None or vectorizer is None or tanim_vectors is None:
+        load_birim_fiyatlar()
+        
+    if request.method == 'POST':
+        query = request.form['query']
+        query_normalized = normalize_text(query)
+        query_vector = vectorizer.transform([query_normalized])
+        similarities = cosine_similarity(query_vector, tanim_vectors).flatten()
+        
+        best_matches = []
+        for i, similarity in enumerate(similarities):
+            if similarity > 0:  # Eşik değerini burada belirleyebilirsiniz
+                levenshtein_sim = levenshtein_similarity(query_normalized, normalize_text(birim_fiyatlar.iloc[i]['Tanımı']))
+                combined_score = (similarity + levenshtein_sim) / 2  # TF-IDF ve Levenshtein skorlarının ortalaması
+                best_matches.append((combined_score, birim_fiyatlar.iloc[i]['Poz No'], birim_fiyatlar.iloc[i]['Tanımı'], birim_fiyatlar.iloc[i]['Birim Fiyat']))
+        
+        best_matches.sort(reverse=True, key=lambda x: x[0])
+        results = pd.DataFrame(best_matches, columns=['Benzerlik Skoru', 'Poz No', 'Tanımı', 'Birim Fiyat'])
+        
+        return render_template('search_results.html', query=query, results=results.to_html(index=False))
+    return render_template('upload.html')
